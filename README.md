@@ -17,33 +17,35 @@ Unlike other benchmarks that use a single set of patterns, we test **multiple ca
 
 ## Results
 
-**Intel i7-1255U, 6.0 MB input text**
+**Intel i7-1255U, 6.0 MB input text** | coregex v0.8.19
 
 | Pattern | Go stdlib | Go coregex | Rust regex | Winner |
 |---------|-----------|------------|------------|--------|
-| literal_alt | 369 ms | 32 ms | **4.3 ms** | Rust **86x** |
-| anchored | <1 ms | <1 ms | 0.6 ms | — |
-| inner_literal | 172 ms | 604 ms | **0.9 ms** | Rust **191x** |
-| suffix | 183 ms | 393 ms | **1.5 ms** | Rust **122x** |
-| char_class | 460 ms | 500 ms | **62 ms** | Rust **7x** |
-| email | 212 ms | 396 ms | **1.8 ms** | Rust **118x** |
+| literal_alt | 810 ms | 50 ms | **13 ms** | Rust **62x** |
+| anchored | 1 ms | <1 ms | 0.5 ms | — |
+| inner_literal | 421 ms | 3 ms | **1.2 ms** | Rust **351x** |
+| suffix | 393 ms | 826 ms | **1.9 ms** | Rust **206x** |
+| char_class | 772 ms | 876 ms | **57 ms** | Rust **13x** |
+| email | 395 ms | 831 ms | **1.9 ms** | Rust **207x** |
 
 ### Key Insights
 
-- **Rust regex** is the gold standard - 7x to 200x faster than Go on all patterns
-- **Go coregex** excels at literal alternations (11.5x faster than stdlib)
-- **Go stdlib** is better on `.*` patterns than coregex (optimized NFA)
-- Huge optimization potential for Go engines on `.*` patterns
+- **Rust regex** is the gold standard - 13x to 350x faster than Go stdlib
+- **Go coregex** excels at literal patterns:
+  - `inner_literal` (`.*@example\.com`): **140x faster** than stdlib
+  - `literal_alt` (`error|warning|...`): **16x faster** than stdlib
+- **Go stdlib** is better on suffix alternation and email patterns
+- Suffix alternation (`.*\.(txt|log)`) needs optimization in coregex
 
 ### Go-only Comparison
 
 | Pattern | Go stdlib | Go coregex | Winner |
 |---------|-----------|------------|--------|
-| literal_alt | 369 ms | **32 ms** | coregex **11.5x** |
-| inner_literal | **172 ms** | 604 ms | stdlib 3.5x |
-| suffix | **183 ms** | 393 ms | stdlib 2.1x |
-| char_class | **460 ms** | 500 ms | stdlib 1.1x |
-| email | **212 ms** | 396 ms | stdlib 1.9x |
+| literal_alt | 810 ms | **50 ms** | coregex **16x** |
+| inner_literal | 421 ms | **3 ms** | coregex **140x** |
+| suffix | **393 ms** | 826 ms | stdlib 2.1x |
+| char_class | **772 ms** | 876 ms | stdlib 1.1x |
+| email | **395 ms** | 831 ms | stdlib 2.1x |
 
 ## Patterns Tested
 
