@@ -17,35 +17,36 @@ Unlike other benchmarks that use a single set of patterns, we test **multiple ca
 
 ## Results
 
-**Intel i7-1255U, 6.0 MB input text** | coregex v0.8.19
+**Intel i7-1255U, 6.0 MB input text** | coregex v0.8.20
 
 | Pattern | Go stdlib | Go coregex | Rust regex | Winner |
 |---------|-----------|------------|------------|--------|
-| literal_alt | 810 ms | 50 ms | **13 ms** | Rust **62x** |
-| anchored | 1 ms | <1 ms | 0.5 ms | — |
-| inner_literal | 421 ms | 3 ms | **1.2 ms** | Rust **351x** |
-| suffix | 393 ms | 826 ms | **1.9 ms** | Rust **206x** |
-| char_class | 772 ms | 876 ms | **57 ms** | Rust **13x** |
-| email | 395 ms | 831 ms | **1.9 ms** | Rust **207x** |
+| literal_alt | 760 ms | 43 ms | **13 ms** | Rust **58x** |
+| anchored | <1 ms | <1 ms | 0.5 ms | — |
+| inner_literal | 378 ms | 3 ms | **1.2 ms** | Rust **315x** |
+| suffix | 372 ms | **5 ms** | 1.9 ms | coregex **74x** |
+| char_class | 696 ms | 851 ms | **57 ms** | Rust **12x** |
+| email | 368 ms | 758 ms | **1.9 ms** | Rust **193x** |
 
 ### Key Insights
 
-- **Rust regex** is the gold standard - 13x to 350x faster than Go stdlib
-- **Go coregex** excels at literal patterns:
-  - `inner_literal` (`.*@example\.com`): **140x faster** than stdlib
-  - `literal_alt` (`error|warning|...`): **16x faster** than stdlib
-- **Go stdlib** is better on suffix alternation and email patterns
-- Suffix alternation (`.*\.(txt|log)`) needs optimization in coregex
+- **Rust regex** is the gold standard - 12x to 315x faster than Go stdlib
+- **Go coregex v0.8.20** excels at literal and suffix patterns:
+  - `inner_literal` (`.*@example\.com`): **125x faster** than stdlib
+  - `suffix` (`.*\.(txt|log|md)`): **74x faster** than stdlib - **NEW in v0.8.20!**
+  - `literal_alt` (`error|warning|...`): **17.6x faster** than stdlib
+- **ReverseSuffixSet optimization** (v0.8.20) - novel optimization NOT present in rust-regex!
+- Character class and email patterns still need optimization
 
 ### Go-only Comparison
 
 | Pattern | Go stdlib | Go coregex | Winner |
 |---------|-----------|------------|--------|
-| literal_alt | 810 ms | **50 ms** | coregex **16x** |
-| inner_literal | 421 ms | **3 ms** | coregex **140x** |
-| suffix | **393 ms** | 826 ms | stdlib 2.1x |
-| char_class | **772 ms** | 876 ms | stdlib 1.1x |
-| email | **395 ms** | 831 ms | stdlib 2.1x |
+| literal_alt | 760 ms | **43 ms** | coregex **17.6x** |
+| inner_literal | 378 ms | **3 ms** | coregex **125x** |
+| suffix | 372 ms | **5 ms** | coregex **74x** |
+| char_class | **696 ms** | 851 ms | stdlib 1.2x |
+| email | **368 ms** | 758 ms | stdlib 2.1x |
 
 ## Patterns Tested
 
