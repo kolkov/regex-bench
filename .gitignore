@@ -1,0 +1,5 @@
+bin/
+input/data.txt
+*.exe
+go.sum
+.idea/
