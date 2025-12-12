@@ -1,3 +1,3 @@
 module github.com/kolkov/regex-bench/go-stdlib
 
-go 1.21
+go 1.25
