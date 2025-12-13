@@ -19,26 +19,28 @@ All benchmarks run on **identical conditions**:
 
 | Pattern | Go stdlib | Go coregex | Rust regex | coregex vs stdlib |
 |---------|-----------|------------|------------|-------------------|
-| literal_alt | 421 ms | 34 ms | **6 ms** | **12x faster** |
-| anchored | 0.15 ms | **0.04 ms** | 0.31 ms | **4x faster** |
-| inner_literal | 215 ms | 2.3 ms | **0.7 ms** | **94x faster** |
-| suffix | 182 ms | 2.1 ms | **1.3 ms** | **87x faster** |
-| char_class | 580 ms | **29 ms** | 65 ms | **20x faster** |
-| email | 221 ms | 2.2 ms | **1.6 ms** | **99x faster** |
+| literal_alt | 410 ms | 36 ms | **6 ms** | **11x faster** |
+| anchored | 0.15 ms | **0.03 ms** | 0.31 ms | **5x faster** |
+| inner_literal | 220 ms | 2.0 ms | **0.7 ms** | **110x faster** |
+| suffix | 185 ms | 1.3 ms | **1.3 ms** | **142x faster** |
+| char_class | 466 ms | **24 ms** | 65 ms | **19x faster** |
+| email | 206 ms | 1.3 ms | **1.6 ms** | **158x faster** |
+| uri | 210 ms | 1.7 ms | *TBD* | **123x faster** |
+| ip | 374 ms | 120 ms | *TBD* | **3x faster** |
 
 ### Key Findings
 
 **Go coregex v0.8.22 vs Go stdlib:**
-- All patterns: **12-99x faster**
-- Best: `email` **99x**, `inner_literal` **94x**, `suffix` **87x**
+- All patterns: **3-158x faster**
+- Best: `email` **158x**, `suffix` **142x**, `uri` **123x**, `inner_literal` **110x**
 
 **Go coregex vs Rust regex:**
-- `char_class`: **coregex 2.2x faster** (29ms vs 65ms)
-- `anchored`: **coregex 7.8x faster** (0.04ms vs 0.31ms)
-- `suffix`: Rust 1.6x faster
-- `email`: Rust 1.4x faster
-- `inner_literal`: Rust 3.3x faster
-- `literal_alt`: Rust 5.7x faster (Aho-Corasick)
+- `char_class`: **coregex 2.7x faster** (24ms vs 65ms)
+- `anchored`: **coregex 10x faster** (0.03ms vs 0.31ms)
+- `suffix`: **tie** (1.3ms vs 1.3ms)
+- `email`: **coregex 1.2x faster** (1.3ms vs 1.6ms)
+- `inner_literal`: Rust 2.9x faster
+- `literal_alt`: Rust 6x faster (Aho-Corasick)
 
 ### Analysis
 
@@ -60,6 +62,8 @@ Rust's advantage on `literal_alt` comes from Aho-Corasick multi-pattern matching
 | suffix | `.*\.(txt\|log\|md)` | Suffix match (reverse search) |
 | char_class | `[\w]+` | Character class |
 | email | `[\w.+-]+@[\w.-]+\.[\w.-]+` | Complex real-world |
+| uri | `[\w]+://[^/\s?#]+[^\s?#]+...` | URL with query/fragment |
+| ip | `(?:(?:25[0-5]\|2[0-4][0-9]\|...)\.){3}...` | IPv4 validation |
 
 ## Running Benchmarks
 
