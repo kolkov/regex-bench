@@ -1,7 +1,6 @@
 bin/
 input/data.txt
 *.exe
-go.sum
 .idea/
 rust/target/
 gosh.log
