@@ -28,6 +28,16 @@ var (
 	httpVersions = []string{"HTTP/1.0", "HTTP/1.1", "HTTP/2.0"}
 	emails       = []string{"user@example.com", "admin@test.org", "info@company.net", "support@example.com"}
 	filenames    = []string{"readme.txt", "config.log", "notes.md", "data.txt", "server.log", "docs.md"}
+	uris         = []string{
+		"http://example.com/path/to/resource",
+		"https://api.github.com/repos/user/repo?page=1",
+		"ftp://files.server.net/downloads/file.zip",
+		"https://www.google.com/search?q=regex#results",
+	}
+	ips = []string{
+		"192.168.1.1", "10.0.0.255", "172.16.0.1", "255.255.255.0",
+		"8.8.8.8", "127.0.0.1", "203.0.113.42", "198.51.100.7",
+	}
 )
 
 func randomWord() string {
@@ -71,6 +81,16 @@ func generateContent() string {
 			// Filename line
 			filename := filenames[rand.Intn(len(filenames))]
 			line = fmt.Sprintf("File: %s - %s", filename, randomWords(7))
+
+		case lineNum%120 == 5:
+			// URI line
+			uri := uris[rand.Intn(len(uris))]
+			line = fmt.Sprintf("Link: %s %s", uri, randomWords(5))
+
+		case lineNum%90 == 6:
+			// IP address line
+			ip := ips[rand.Intn(len(ips))]
+			line = fmt.Sprintf("Server %s responded with %s", ip, randomWords(4))
 
 		default:
 			// Regular line with random content

@@ -15,6 +15,8 @@ const PATTERNS: &[Pattern] = &[
     Pattern { name: "suffix", pattern: r".*\.(txt|log|md)" },
     Pattern { name: "char_class", pattern: r"[\w]+" },
     Pattern { name: "email", pattern: r"[\w.+-]+@[\w.-]+\.[\w.-]+" },
+    Pattern { name: "uri", pattern: r"[\w]+://[^/\s?#]+[^\s?#]+(?:\?[^\s#]*)?(?:#[^\s]*)?" },
+    Pattern { name: "ip", pattern: r"(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])" },
 ];
 
 fn measure(data: &str, p: &Pattern) {
