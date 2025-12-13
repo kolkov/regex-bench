@@ -1,63 +1,58 @@
 # regex-bench
 
-Cross-language regex benchmark focusing on **real-world patterns** where different engines excel.
+Cross-language regex benchmark for **real-world patterns**.
 
-## Philosophy
-
-Unlike other benchmarks that use a single set of patterns, we test **multiple categories** to show where each engine shines:
-
-| Category | Example | Tests |
-|----------|---------|-------|
-| **Literals** | `error\|warning\|fatal` | Literal extraction, multi-pattern |
-| **Anchored** | `^HTTP/\d\.\d` | Start anchor optimization |
-| **Inner Literal** | `.*@example\.com` | Reverse/inner literal search |
-| **Suffix** | `.*\.(txt\|log)` | Suffix-based search |
-| **Character Class** | `[\w]+` | Pure NFA/DFA performance |
-| **Complex** | Email pattern | Real-world combined patterns |
+Created to provide data for [golang/go#26623](https://github.com/golang/go/issues/26623) discussion on Go regex performance.
 
 ## Results
 
-**Intel i7-1255U, 6.0 MB input text** | coregex v0.8.20
+**Intel i7-1255U, 6.0 MB input text**
 
-| Pattern | Go stdlib | Go coregex | Rust regex | Winner |
-|---------|-----------|------------|------------|--------|
-| literal_alt | 760 ms | 43 ms | **13 ms** | Rust **58x** |
-| anchored | <1 ms | <1 ms | 0.5 ms | — |
-| inner_literal | 378 ms | 3 ms | **1.2 ms** | Rust **315x** |
-| suffix | 372 ms | **5 ms** | 1.9 ms | coregex **74x** |
-| char_class | 696 ms | 851 ms | **57 ms** | Rust **12x** |
-| email | 368 ms | 758 ms | **1.9 ms** | Rust **193x** |
+| Pattern | Go stdlib | Go coregex | Rust regex | Best Go vs stdlib |
+|---------|-----------|------------|------------|-------------------|
+| literal_alt | 582 ms | 42 ms | **11 ms** | **14x faster** |
+| anchored | <1 ms | <1 ms | <1 ms | — |
+| inner_literal | 281 ms | 3 ms | **1.3 ms** | **94x faster** |
+| suffix | 289 ms | **2 ms** | 1.9 ms | **145x faster** |
+| char_class | 617 ms | **28 ms** | 66 ms | **22x faster** |
+| email | 318 ms | **1.9 ms** | 3.4 ms | **167x faster** |
 
-### Key Insights
+### Key Findings
 
-- **Rust regex** is the gold standard - 12x to 315x faster than Go stdlib
-- **Go coregex v0.8.20** excels at literal and suffix patterns:
-  - `inner_literal` (`.*@example\.com`): **125x faster** than stdlib
-  - `suffix` (`.*\.(txt|log|md)`): **74x faster** than stdlib - **NEW in v0.8.20!**
-  - `literal_alt` (`error|warning|...`): **17.6x faster** than stdlib
-- **ReverseSuffixSet optimization** (v0.8.20) - novel optimization NOT present in rust-regex!
-- Character class and email patterns still need optimization
+**Go coregex v0.8.22 vs Go stdlib:**
+- `email`: **167x faster**
+- `suffix`: **145x faster**  
+- `inner_literal`: **94x faster**
+- `char_class`: **22x faster**
+- `literal_alt`: **14x faster**
 
-### Go-only Comparison
+**Go coregex vs Rust regex:**
+- `char_class`: **coregex 2.4x faster** (28ms vs 66ms)
+- `email`: **coregex 1.8x faster** (1.9ms vs 3.4ms)
+- `suffix`: **comparable** (2ms vs 1.9ms)
+- `inner_literal`: Rust 2.3x faster
+- `literal_alt`: Rust 4x faster (Aho-Corasick)
 
-| Pattern | Go stdlib | Go coregex | Winner |
-|---------|-----------|------------|--------|
-| literal_alt | 760 ms | **43 ms** | coregex **17.6x** |
-| inner_literal | 378 ms | **3 ms** | coregex **125x** |
-| suffix | 372 ms | **5 ms** | coregex **74x** |
-| char_class | **696 ms** | 851 ms | stdlib 1.2x |
-| email | **368 ms** | 758 ms | stdlib 2.1x |
+### Analysis
+
+Go's stdlib `regexp` uses a simple NFA without prefilters or optimizations. Both coregex and Rust's regex use:
+- Lazy DFA with on-demand state compilation
+- SIMD prefilters (Teddy, memchr)
+- Reverse search strategies for `.*` patterns
+- Specialized searchers (CharClassSearcher in coregex)
+
+Rust's advantage on `literal_alt` comes from Aho-Corasick integration. coregex wins on character classes due to CharClassSearcher's 256-byte lookup table.
 
 ## Patterns Tested
 
-```
-literal_alt     error|warning|fatal|critical
-anchored        ^HTTP/[12]\.[01]
-inner_literal   .*@example\.com
-suffix          .*\.(txt|log|md)
-char_class      [\w]+
-email           [\w.+-]+@[\w.-]+\.[\w.-]+
-```
+| Pattern | Regex | Type |
+|---------|-------|------|
+| literal_alt | `error\|warning\|fatal\|critical` | Multi-literal |
+| anchored | `^HTTP/[12]\.[01]` | Start anchor |
+| inner_literal | `.*@example\.com` | Inner literal |
+| suffix | `.*\.(txt\|log\|md)` | Suffix match |
+| char_class | `[\w]+` | Character class |
+| email | `[\w.+-]+@[\w.-]+\.[\w.-]+` | Complex |
 
 ## Running Benchmarks
 
@@ -65,38 +60,21 @@ email           [\w.+-]+@[\w.-]+\.[\w.-]+
 # Generate input data (6 MB)
 go run scripts/generate-input.go
 
-# Build Go
-cd go-stdlib && go build -o ../bin/go-stdlib.exe .
-cd go-coregex && go build -o ../bin/go-coregex.exe .
-
-# Build Rust (via Docker)
-docker run --rm -v "$(pwd):/app" -w /app/rust rust:latest \
-  bash -c "cargo build --release && cp target/release/benchmark /app/bin/rust-benchmark"
-
-# Run
+# Build and run Go
+cd go-stdlib && go build -o ../bin/go-stdlib.exe . && cd ..
+cd go-coregex && go build -o ../bin/go-coregex.exe . && cd ..
 ./bin/go-stdlib.exe input/data.txt
 ./bin/go-coregex.exe input/data.txt
-docker run --rm -v "$(pwd):/app" -w /app rust:latest ./bin/rust-benchmark input/data.txt
+
+# Run Rust (requires WSL or Linux)
+wsl ./bin/rust-benchmark input/data.txt
 ```
 
-## Project Structure
+## Links
 
-```
-regex-bench/
-├── go-stdlib/      # Go standard library regexp
-├── go-coregex/     # coregex high-performance engine
-├── rust/           # Rust regex crate
-├── input/          # Generated test data
-├── scripts/        # Helper scripts
-└── bin/            # Compiled binaries
-```
-
-## Adding a New Implementation
-
-1. Create folder: `{language}-{library}/`
-2. Implement benchmark following existing examples
-3. Output format: `{pattern_name} {time_ms} ms {count} matches`
-4. Submit PR
+- **coregex**: https://github.com/coregx/coregex
+- **Go issue**: https://github.com/golang/go/issues/26623
+- **Rust regex**: https://github.com/rust-lang/regex
 
 ## License
 

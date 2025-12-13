@@ -26,8 +26,8 @@ func measure(data []byte, p Pattern) {
 	start := time.Now()
 
 	re := coregex.MustCompile(p.Pattern)
-	matches := re.FindAll(data, -1)
-	count := len(matches)
+	// Use Count for zero-allocation counting (like Rust's find_iter().count())
+	count := re.Count(data, -1)
 
 	elapsed := time.Since(start)
 	ms := float64(elapsed) / float64(time.Millisecond)
