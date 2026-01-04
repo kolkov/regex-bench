@@ -55,16 +55,18 @@ All benchmarks run on **identical conditions**:
 
 ## Patterns Tested
 
-| Name | Pattern | Type |
-|------|---------|------|
-| literal_alt | `error\|warning\|fatal\|critical` | Multi-literal alternation |
-| anchored | `^HTTP/[12]\.[01]` | Start anchor |
-| inner_literal | `.*@example\.com` | Inner literal (reverse search) |
-| suffix | `.*\.(txt\|log\|md)` | Suffix match (reverse search) |
-| char_class | `[\w]+` | Character class |
-| email | `[\w.+-]+@[\w.-]+\.[\w.-]+` | Complex real-world |
-| uri | `[\w]+://[^/\s?#]+[^\s?#]+...` | URL with query/fragment |
-| ip | `(?:(?:25[0-5]\|2[0-4][0-9]\|...)\.){3}...` | IPv4 validation |
+| Name | Pattern | Type | Optimization |
+|------|---------|------|--------------|
+| literal_alt | `error\|warning\|fatal\|critical` | 4-literal alternation | Teddy SIMD |
+| multi_literal | `apple\|banana\|...\|orange` | 12-literal alternation | **Aho-Corasick** |
+| anchored | `^HTTP/[12]\.[01]` | Start anchor | — |
+| inner_literal | `.*@example\.com` | Inner literal | Reverse search |
+| suffix | `.*\.(txt\|log\|md)` | Suffix match | Reverse search |
+| char_class | `[\w]+` | Character class | CharClassSearcher |
+| email | `[\w.+-]+@[\w.-]+\.[\w.-]+` | Complex real-world | Memmem SIMD |
+| uri | `[\w]+://[^/\s?#]+[^\s?#]+...` | URL with query/fragment | Memmem SIMD |
+| version | `\d+\.\d+\.\d+` | Version numbers | **DigitPrefilter** |
+| ip | `(?:(?:25[0-5]\|2[0-4][0-9]\|...)\.){3}...` | IPv4 validation | Complex DFA |
 
 ## Running Benchmarks
 

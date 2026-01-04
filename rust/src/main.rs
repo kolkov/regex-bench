@@ -10,12 +10,14 @@ struct Pattern {
 
 const PATTERNS: &[Pattern] = &[
     Pattern { name: "literal_alt", pattern: r"error|warning|fatal|critical" },
+    Pattern { name: "multi_literal", pattern: r"apple|banana|cherry|date|elderberry|fig|grape|honeydew|kiwi|lemon|mango|orange" },
     Pattern { name: "anchored", pattern: r"^HTTP/[12]\.[01]" },
     Pattern { name: "inner_literal", pattern: r".*@example\.com" },
     Pattern { name: "suffix", pattern: r".*\.(txt|log|md)" },
     Pattern { name: "char_class", pattern: r"[\w]+" },
     Pattern { name: "email", pattern: r"[\w.+-]+@[\w.-]+\.[\w.-]+" },
     Pattern { name: "uri", pattern: r"[\w]+://[^/\s?#]+[^\s?#]+(?:\?[^\s#]*)?(?:#[^\s]*)?" },
+    Pattern { name: "version", pattern: r"\d+\.\d+\.\d+" },
     Pattern { name: "ip", pattern: r"(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])" },
 ];
 

@@ -38,6 +38,18 @@ var (
 		"192.168.1.1", "10.0.0.255", "172.16.0.1", "255.255.255.0",
 		"8.8.8.8", "127.0.0.1", "203.0.113.42", "198.51.100.7",
 	}
+
+	// Fruits for multi-literal Aho-Corasick test (>8 patterns)
+	fruits = []string{
+		"apple", "banana", "cherry", "date", "elderberry", "fig",
+		"grape", "honeydew", "kiwi", "lemon", "mango", "orange",
+	}
+
+	// Version numbers for digit-start DigitPrefilter test
+	versions = []string{
+		"1.0.0", "2.1.3", "3.14.159", "10.20.30", "0.9.1", "4.5.6",
+		"1.2.3", "7.8.9", "12.0.1", "2.0.0", "5.4.3", "99.99.99",
+	}
 )
 
 func randomWord() string {
@@ -91,6 +103,16 @@ func generateContent() string {
 			// IP address line
 			ip := ips[rand.Intn(len(ips))]
 			line = fmt.Sprintf("Server %s responded with %s", ip, randomWords(4))
+
+		case lineNum%70 == 7:
+			// Fruit line (for multi-literal Aho-Corasick test)
+			fruit := fruits[rand.Intn(len(fruits))]
+			line = fmt.Sprintf("Fresh %s available at the market %s", fruit, randomWords(5))
+
+		case lineNum%60 == 8:
+			// Version line (for digit-start DigitPrefilter test)
+			version := versions[rand.Intn(len(versions))]
+			line = fmt.Sprintf("Updated to version %s with %s", version, randomWords(6))
 
 		default:
 			// Regular line with random content

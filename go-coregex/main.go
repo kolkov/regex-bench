@@ -15,12 +15,14 @@ type Pattern struct {
 
 var patterns = []Pattern{
 	{"literal_alt", `error|warning|fatal|critical`},
+	{"multi_literal", `apple|banana|cherry|date|elderberry|fig|grape|honeydew|kiwi|lemon|mango|orange`},
 	{"anchored", `^HTTP/[12]\.[01]`},
 	{"inner_literal", `.*@example\.com`},
 	{"suffix", `.*\.(txt|log|md)`},
 	{"char_class", `[\w]+`},
 	{"email", `[\w.+-]+@[\w.-]+\.[\w.-]+`},
 	{"uri", `[\w]+://[^/\s?#]+[^\s?#]+(?:\?[^\s#]*)?(?:#[^\s]*)?`},
+	{"version", `\d+\.\d+\.\d+`},
 	{"ip", `(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])`},
 }
 
