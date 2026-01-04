@@ -19,39 +19,46 @@ All benchmarks run on **identical conditions**:
 
 | Pattern | Go stdlib | Go coregex | Rust regex | coregex vs stdlib |
 |---------|-----------|------------|------------|-------------------|
-| literal_alt | 475 ms | 32 ms | **0.9 ms** | **15x faster** |
-| anchored | 0.02 ms | 0.28 ms | **0.09 ms** | — |
-| inner_literal | 232 ms | **0.94 ms** | 0.74 ms | **247x faster** |
-| suffix | 234 ms | 2.1 ms | **1.6 ms** | **112x faster** |
-| char_class | 542 ms | 171 ms | **52 ms** | **3.2x faster** |
-| email | 260 ms | 2.6 ms | **1.7 ms** | **101x faster** |
-| uri | 257 ms | 1.9 ms | **1.1 ms** | **139x faster** |
-| ip | 492 ms | 219 ms | **12 ms** | **2.2x faster** |
+| literal_alt | 490 ms | 31 ms | **0.8 ms** | **16x faster** |
+| **multi_literal** | 1433 ms | **43 ms** | 4.9 ms | **33x faster** 🆕 |
+| anchored | 0.03 ms | 0.02 ms | **0.05 ms** | — |
+| inner_literal | 231 ms | **1.2 ms** | 0.6 ms | **199x faster** |
+| suffix | 233 ms | **1.2 ms** | 1.3 ms | **197x faster** |
+| char_class | 500 ms | 140 ms | **53 ms** | **3.6x faster** |
+| email | 260 ms | 1.9 ms | **1.5 ms** | **134x faster** |
+| uri | 262 ms | 4.6 ms | **1.0 ms** | **57x faster** |
+| **version** | 171 ms | **8.7 ms** | 0.65 ms | **20x faster** 🆕 |
+| ip | 493 ms | 717 ms | **12 ms** | — (regression) |
 
 ### Key Findings
 
 **Go coregex v0.9.0 vs Go stdlib:**
-- All patterns: **2-247x faster**
-- Best: `inner_literal` **247x**, `uri` **139x**, `suffix` **112x**, `email` **101x**
+- Most patterns: **3-199x faster**
+- Best: `inner_literal` **199x**, `suffix` **197x**, `email` **134x**
+- **NEW**: `multi_literal` **33x** (Aho-Corasick for 12 patterns)
+- **NEW**: `version` **20x** (DigitPrefilter for `\d+.\d+.\d+`)
 
 **Go coregex vs Rust regex:**
-- `inner_literal`: **coregex ~tie** (0.94ms vs 0.74ms)
-- `suffix`: **coregex ~tie** (2.1ms vs 1.6ms)
-- `email`: **coregex ~tie** (2.6ms vs 1.7ms)
-- `uri`: Rust 1.7x faster
-- `char_class`: Rust 3.3x faster
-- `ip`: Rust 18x faster (complex alternation groups)
-- `literal_alt`: Rust 36x faster (Aho-Corasick for 4 patterns)
+- `suffix`: **coregex ~tie** (1.2ms vs 1.3ms)
+- `inner_literal`: Rust 2x faster
+- `email`: Rust ~tie (1.9ms vs 1.5ms)
+- `multi_literal`: Rust 9x faster (Aho-Corasick)
+- `version`: Rust 13x faster
+- `char_class`: Rust 2.6x faster
+- `literal_alt`: Rust 39x faster (Aho-Corasick for any count)
 
 ### Analysis
 
 | Engine | Strengths | Weaknesses |
 |--------|-----------|------------|
-| **Go stdlib** | Simple, no dependencies | No optimizations, 2-247x slower |
-| **Go coregex** | Reverse search, SIMD prefilters, Aho-Corasick (>8 patterns) | Slow on complex nested alternations |
-| **Rust regex** | Aho-Corasick (any count), mature DFA | — |
+| **Go stdlib** | Simple, no dependencies | No optimizations, 3-199x slower |
+| **Go coregex** | Reverse search, SIMD prefilters, Aho-Corasick (>8 patterns), DigitPrefilter | Complex nested alternations (ip) |
+| **Rust regex** | Aho-Corasick (any count), mature DFA, overall fastest | — |
 
-**Note**: coregex v0.9.0 includes Aho-Corasick for >8 literal patterns and DigitPrefilter for digit-start patterns. These benchmarks use patterns that don't trigger these optimizations (literal_alt has only 4 patterns, ip uses complex nested alternations).
+**v0.9.0 New Features:**
+- ✅ `multi_literal`: Aho-Corasick triggers for >8 literal patterns (33x faster)
+- ✅ `version`: DigitPrefilter triggers for `\d+` patterns (20x faster)
+- ⚠️ `ip`: Complex nested alternations cause regression (investigating)
 
 ## Patterns Tested
 
