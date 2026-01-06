@@ -17,18 +17,18 @@ All benchmarks run on **identical conditions**:
 
 **GitHub Actions Ubuntu, 6.0 MB input** (using `FindAll` for fair comparison)
 
-| Pattern | Go stdlib | Go coregex | Rust regex | coregex vs stdlib |
-|---------|-----------|------------|------------|-------------------|
-| literal_alt | 448 ms | 5.5 ms | **0.9 ms** | **81x faster** |
-| multi_literal | 1250 ms | 47 ms | **4.7 ms** | **27x faster** |
-| anchored | 0.05 ms | 0.45 ms | 0.05 ms | — |
-| inner_literal | 201 ms | **1.9 ms** | 0.6 ms | **106x faster** |
-| suffix | 203 ms | **1.4 ms** | 1.3 ms | **149x faster** |
-| char_class | 494 ms | 63 ms | **53 ms** | **7.8x faster** |
-| email | 245 ms | 2.0 ms | **1.6 ms** | **122x faster** |
-| uri | 238 ms | 2.3 ms | **1.0 ms** | **103x faster** |
-| version | 153 ms | 2.2 ms | **0.7 ms** | **70x faster** |
-| **ip** | 457 ms | **3.2 ms** | 11.4 ms | **143x faster** |
+| Pattern | Go stdlib | Go coregex | Rust regex | vs stdlib | vs Rust |
+|---------|-----------|------------|------------|-----------|---------|
+| literal_alt | 448 ms | 5.5 ms | **0.9 ms** | **81x** ✅ | 6.1x slower |
+| multi_literal | 1250 ms | 47 ms | **4.7 ms** | **27x** ✅ | 10x slower |
+| anchored | 0.05 ms | 0.45 ms | 0.05 ms | — | — |
+| inner_literal | 201 ms | **1.9 ms** | 0.6 ms | **106x** ✅ | 3.2x slower |
+| suffix | 203 ms | **1.4 ms** | 1.3 ms | **149x** ✅ | **~tie** |
+| char_class | 494 ms | 63 ms | **53 ms** | **7.8x** ✅ | 1.2x slower |
+| email | 245 ms | 2.0 ms | **1.6 ms** | **122x** ✅ | 1.2x slower |
+| uri | 238 ms | 2.3 ms | **1.0 ms** | **103x** ✅ | 2.3x slower |
+| version | 153 ms | 2.2 ms | **0.7 ms** | **70x** ✅ | 3.1x slower |
+| **ip** | 457 ms | **3.2 ms** | 11.4 ms | **143x** ✅ | **3.6x faster** ✅ |
 
 ### Key Findings
 
