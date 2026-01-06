@@ -19,34 +19,36 @@ All benchmarks run on **identical conditions**:
 
 | Pattern | Go stdlib | Go coregex | Rust regex | coregex vs stdlib |
 |---------|-----------|------------|------------|-------------------|
-| literal_alt | 472 ms | 31 ms | **0.8 ms** | **15x faster** |
-| multi_literal | 1405 ms | 43 ms | **4.8 ms** | **33x faster** |
-| anchored | 0.03 ms | 0.09 ms | 0.03 ms | — |
-| inner_literal | 231 ms | **1.4 ms** | 0.5 ms | **165x faster** |
-| suffix | 234 ms | **1.4 ms** | 1.3 ms | **167x faster** |
-| char_class | 514 ms | 139 ms | **53 ms** | **3.7x faster** |
-| email | 259 ms | 2.5 ms | **1.6 ms** | **104x faster** |
-| uri | 257 ms | 2.1 ms | **0.9 ms** | **122x faster** |
-| version | 169 ms | 8.2 ms | **0.7 ms** | **21x faster** |
-| **ip** | 496 ms | **3.9 ms** | 12.3 ms | **127x faster** |
+| literal_alt | 448 ms | 5.5 ms | **0.9 ms** | **81x faster** |
+| multi_literal | 1250 ms | 47 ms | **4.7 ms** | **27x faster** |
+| anchored | 0.05 ms | 0.45 ms | 0.05 ms | — |
+| inner_literal | 201 ms | **1.9 ms** | 0.6 ms | **106x faster** |
+| suffix | 203 ms | **1.4 ms** | 1.3 ms | **149x faster** |
+| char_class | 494 ms | 63 ms | **53 ms** | **7.8x faster** |
+| email | 245 ms | 2.0 ms | **1.6 ms** | **122x faster** |
+| uri | 238 ms | 2.3 ms | **1.0 ms** | **103x faster** |
+| version | 153 ms | 2.2 ms | **0.7 ms** | **70x faster** |
+| **ip** | 457 ms | **3.2 ms** | 11.4 ms | **143x faster** |
 
 ### Key Findings
 
-**Go coregex v0.9.2 vs Go stdlib:**
-- Most patterns: **15-167x faster**
-- Best: `suffix` **167x**, `inner_literal` **165x**, `ip` **127x**, `uri` **122x**
-- `multi_literal` **33x** (Aho-Corasick for 12 patterns)
-- `version` **21x** (ReverseInner)
+**Go coregex v0.9.4 vs Go stdlib:**
+- Most patterns: **7-149x faster**
+- Best: `suffix` **149x**, `ip` **143x**, `email` **122x**, `inner_literal` **106x**
+- `literal_alt` **81x** (Teddy 2-byte fingerprint)
+- `version` **70x** (DigitPrefilter)
+- `char_class` **7.8x** (streaming state machine)
 
 **Go coregex vs Rust regex:**
-- `ip`: coregex faster (3.9ms vs 12.3ms) — specific to this pattern
+- `ip`: **coregex 3.6x faster** (3.2ms vs 11.4ms)
 - `suffix`: ~tie (1.4ms vs 1.3ms)
-- `inner_literal`: Rust 2.8x faster
-- `email`: Rust 1.6x faster
-- `multi_literal`: Rust 9x faster (optimized Aho-Corasick)
-- `version`: Rust 12x faster
-- `char_class`: Rust 2.6x faster
-- `literal_alt`: Rust 39x faster (Aho-Corasick for any count)
+- `char_class`: Rust 1.2x faster (was 2.6x in v0.9.2)
+- `email`: Rust 1.2x faster
+- `uri`: Rust 2.3x faster
+- `inner_literal`: Rust 3.2x faster
+- `version`: Rust 3.1x faster
+- `literal_alt`: Rust 6.1x faster (was 39x in v0.9.2)
+- `multi_literal`: Rust 10x faster (optimized Aho-Corasick)
 
 > **Note**: Rust regex has 10+ years of development. coregex optimizations are targeted, not universal.
 
@@ -58,15 +60,18 @@ All benchmarks run on **identical conditions**:
 | **Go coregex** | Reverse search, SIMD prefilters, Aho-Corasick, **IP patterns faster than Rust** | Complex alternations |
 | **Rust regex** | Aho-Corasick (any count), mature DFA, overall fastest | IP patterns slower than coregex |
 
-**v0.9.2 Improvements:**
-- 🚀 `ip`: **127x faster** than stdlib, **3.1x faster than Rust**
-  - Compile-time strategy selection based on NFA complexity
-  - Complex digit patterns (>100 NFA states) use optimized lazy DFA
-  - Removed runtime overhead from v0.9.1 adaptive switching
+**v0.9.4 Improvements:**
+- 🚀 `char_class`: **7.8x faster** than stdlib (was 3.7x in v0.9.2)
+  - Streaming state machine eliminates per-match overhead
+  - Gap vs Rust reduced from 2.6x to 1.2x
+- 🚀 `literal_alt`: **81x faster** than stdlib (was 15x in v0.9.2)
+  - Teddy 2-byte fingerprint reduces false positives 90%
+- 🚀 `version`: **70x faster** than stdlib (was 21x in v0.9.2)
+  - DigitPrefilter prioritization over ReverseInner
 
-**v0.9.0-v0.9.1 Features:**
+**v0.9.2 Features:**
+- ✅ `ip`: **143x faster** than stdlib, **3.6x faster than Rust**
 - ✅ `multi_literal`: Aho-Corasick for >8 literal patterns
-- ✅ `version`: ReverseInner with `.` literal
 - ✅ DigitPrefilter for simple digit-lead patterns
 
 ## Patterns Tested
