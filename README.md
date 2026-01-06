@@ -22,7 +22,7 @@ All benchmarks run on **identical conditions**:
 | literal_alt | 482 ms | 4.3 ms | **0.7 ms** | **112x** | 5.9x slower |
 | multi_literal | 1402 ms | 12.4 ms | **4.8 ms** | **113x** | 2.6x slower |
 | anchored | 0.05 ms | **0.02 ms** | 0.04 ms | **2.5x** | **2x faster** |
-| inner_literal | 231 ms | 1.4 ms | **0.5 ms** | **164x** | 2.9x slower |
+| inner_literal | 232 ms | **0.83 ms** | 0.54 ms | **280x** | 1.5x slower |
 | suffix | 233 ms | **1.0 ms** | 1.3 ms | **224x** | **27% faster** |
 | char_class | 511 ms | **39.4 ms** | 53.4 ms | **13x** | **35% faster** |
 | email | 261 ms | **1.2 ms** | 1.4 ms | **225x** | **16% faster** |
@@ -33,8 +33,8 @@ All benchmarks run on **identical conditions**:
 ### Key Findings
 
 **Go coregex v0.10.0 vs Go stdlib:**
-- Most patterns: **13-225x faster**
-- Best: `email` **225x**, `suffix` **224x**, `inner_literal` **164x**, `ip` **132x**
+- Most patterns: **13-280x faster**
+- Best: `inner_literal` **280x**, `email` **225x**, `suffix` **224x**, `ip` **132x**
 - `multi_literal` **113x** (Aho-Corasick)
 - `literal_alt` **112x** (Teddy SIMD)
 - `char_class` **13x** (CharClassSearcher)
@@ -50,8 +50,8 @@ All benchmarks run on **identical conditions**:
 **Rust faster than coregex:**
 - `literal_alt`: Rust 5.9x faster
 - `version`: Rust 3.2x faster
-- `inner_literal`: Rust 2.9x faster
 - `multi_literal`: Rust 2.6x faster
+- `inner_literal`: Rust 1.5x faster
 - `uri`: Rust 1.5x faster
 
 > **Note**: Rust regex has 10+ years of development. coregex optimizations are targeted, not universal.
@@ -67,10 +67,10 @@ All benchmarks run on **identical conditions**:
 **v0.10.0 Improvements:**
 - Fat Teddy AVX2: 33-64 pattern support (9+ GB/s throughput)
 - **5 patterns now faster than Rust**: char_class, ip, suffix, email, anchored
+- `inner_literal`: **280x faster** (was 140x), gap vs Rust reduced from 2.3x to 1.5x
 - `suffix`: **224x faster** (was 158x), now **27% faster than Rust**
 - `char_class`: **13x faster** (was 9x), now **35% faster than Rust**
 - `email`: **225x faster** (was 145x), now **16% faster than Rust**
-- `inner_literal`: Regression +53% (0.92ms -> 1.41ms) - investigating
 
 **v0.9.5 Improvements:**
 - `multi_literal`: **99x faster** than stdlib (was 27x in v0.9.4!)
