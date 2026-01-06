@@ -19,37 +19,40 @@ All benchmarks run on **identical conditions**:
 
 | Pattern | Go stdlib | Go coregex | Rust regex | vs stdlib | vs Rust |
 |---------|-----------|------------|------------|-----------|---------|
-| literal_alt | 433 ms | 4.2 ms | **1.0 ms** | **104x** ✅ | 4.3x slower |
-| multi_literal | 1269 ms | 12.9 ms | **4.7 ms** | **99x** ✅ | 2.8x slower |
-| anchored | 0.05 ms | 0.53 ms | 0.06 ms | — | — |
-| inner_literal | 203 ms | **1.5 ms** | 0.6 ms | **140x** ✅ | 2.3x slower |
-| suffix | 203 ms | **1.3 ms** | 1.5 ms | **158x** ✅ | **~tie** |
-| char_class | 506 ms | 56.5 ms | **51 ms** | **9x** ✅ | 1.1x slower |
-| email | 244 ms | 1.7 ms | **1.5 ms** | **145x** ✅ | 1.1x slower |
-| uri | 237 ms | 2.1 ms | **1.0 ms** | **111x** ✅ | 2.2x slower |
-| version | 152 ms | 1.6 ms | **0.8 ms** | **93x** ✅ | 2.2x slower |
-| **ip** | 458 ms | **2.9 ms** | 11.4 ms | **157x** ✅ | **3.9x faster** ✅ |
+| literal_alt | 482 ms | 4.3 ms | **0.7 ms** | **112x** | 5.9x slower |
+| multi_literal | 1402 ms | 12.4 ms | **4.8 ms** | **113x** | 2.6x slower |
+| anchored | 0.05 ms | **0.02 ms** | 0.04 ms | **2.5x** | **2x faster** |
+| inner_literal | 231 ms | 1.4 ms | **0.5 ms** | **164x** | 2.9x slower |
+| suffix | 233 ms | **1.0 ms** | 1.3 ms | **224x** | **27% faster** |
+| char_class | 511 ms | **39.4 ms** | 53.4 ms | **13x** | **35% faster** |
+| email | 261 ms | **1.2 ms** | 1.4 ms | **225x** | **16% faster** |
+| uri | 258 ms | 1.8 ms | **1.2 ms** | **145x** | 1.5x slower |
+| version | 171 ms | 2.2 ms | **0.7 ms** | **79x** | 3.2x slower |
+| **ip** | 500 ms | **3.8 ms** | 12.3 ms | **132x** | **3.3x faster** |
 
 ### Key Findings
 
-**Go coregex v0.9.5 vs Go stdlib:**
-- Most patterns: **9-158x faster**
-- Best: `suffix` **158x**, `ip` **157x**, `email` **145x**, `inner_literal` **140x**
-- `multi_literal` **99x** (Aho-Corasick + literal extractor fix)
-- `literal_alt` **104x** (Teddy SIMD)
-- `version` **93x** (DigitPrefilter)
-- `char_class` **9x** (streaming state machine)
+**Go coregex v0.10.0 vs Go stdlib:**
+- Most patterns: **13-225x faster**
+- Best: `email` **225x**, `suffix` **224x**, `inner_literal` **164x**, `ip` **132x**
+- `multi_literal` **113x** (Aho-Corasick)
+- `literal_alt` **112x** (Teddy SIMD)
+- `char_class` **13x** (CharClassSearcher)
+- `version` **79x** (DigitPrefilter)
 
-**Go coregex vs Rust regex:**
-- `ip`: **coregex 3.9x faster** (2.9ms vs 11.4ms)
-- `suffix`: ~tie
-- `char_class`: Rust 1.1x faster
-- `email`: Rust 1.1x faster
-- `uri`: Rust 2.2x faster
-- `inner_literal`: Rust 2.3x faster
-- `version`: Rust 2.2x faster
-- `literal_alt`: Rust 4.3x faster (was 6.1x in v0.9.4)
-- `multi_literal`: Rust 2.8x faster (was 10x in v0.9.4!)
+**Go coregex faster than Rust (5 patterns!):**
+- `char_class`: **coregex 35% faster** (39ms vs 53ms)
+- `ip`: **coregex 3.3x faster** (3.8ms vs 12.3ms)
+- `suffix`: **coregex 27% faster** (1.0ms vs 1.3ms)
+- `email`: **coregex 16% faster** (1.2ms vs 1.4ms)
+- `anchored`: **coregex 2x faster** (0.02ms vs 0.04ms)
+
+**Rust faster than coregex:**
+- `literal_alt`: Rust 5.9x faster
+- `version`: Rust 3.2x faster
+- `inner_literal`: Rust 2.9x faster
+- `multi_literal`: Rust 2.6x faster
+- `uri`: Rust 1.5x faster
 
 > **Note**: Rust regex has 10+ years of development. coregex optimizations are targeted, not universal.
 
@@ -57,27 +60,34 @@ All benchmarks run on **identical conditions**:
 
 | Engine | Strengths | Weaknesses |
 |--------|-----------|------------|
-| **Go stdlib** | Simple, no dependencies | No optimizations, 9-158x slower |
-| **Go coregex** | Reverse search, SIMD prefilters, Aho-Corasick, **IP patterns faster than Rust** | — |
-| **Rust regex** | Aho-Corasick (any count), mature DFA, overall fastest | IP patterns slower than coregex |
+| **Go stdlib** | Simple, no dependencies | No optimizations, 13-225x slower |
+| **Go coregex** | Reverse search, SIMD prefilters, Aho-Corasick, **5 patterns faster than Rust** | — |
+| **Rust regex** | Aho-Corasick (any count), mature DFA, overall fastest | char_class, IP, suffix, email slower |
+
+**v0.10.0 Improvements:**
+- Fat Teddy AVX2: 33-64 pattern support (9+ GB/s throughput)
+- **5 patterns now faster than Rust**: char_class, ip, suffix, email, anchored
+- `suffix`: **224x faster** (was 158x), now **27% faster than Rust**
+- `char_class`: **13x faster** (was 9x), now **35% faster than Rust**
+- `email`: **225x faster** (was 145x), now **16% faster than Rust**
+- `inner_literal`: Regression +53% (0.92ms -> 1.41ms) - investigating
 
 **v0.9.5 Improvements:**
-- 🚀 `multi_literal`: **99x faster** than stdlib (was 27x in v0.9.4!)
+- `multi_literal`: **99x faster** than stdlib (was 27x in v0.9.4!)
   - Literal extractor fix: factored prefixes now correctly expanded
   - `(Wanderlust|Weltanschauung)` now extracts full literals, not just `W`
   - Gap vs Rust reduced from 10x to 2.8x
-- 🚀 `literal_alt`: **104x faster** than stdlib (was 81x)
-- 🚀 `version`: **93x faster** than stdlib (was 70x)
-- 🚀 Teddy Slim now supports 32 patterns (was 8)
+- `literal_alt`: **104x faster** than stdlib (was 81x)
+- Teddy Slim now supports 32 patterns (was 8)
 
 **v0.9.4 Features:**
-- ✅ `char_class`: **9x faster** than stdlib
-- ✅ Teddy 2-byte fingerprint reduces false positives 90%
+- `char_class`: **9x faster** than stdlib
+- Teddy 2-byte fingerprint reduces false positives 90%
 
 **v0.9.2 Features:**
-- ✅ `ip`: **157x faster** than stdlib, **3.9x faster than Rust**
-- ✅ Aho-Corasick for >8 literal patterns
-- ✅ DigitPrefilter for digit-lead patterns
+- `ip`: **157x faster** than stdlib, **3.9x faster than Rust**
+- Aho-Corasick for >8 literal patterns
+- DigitPrefilter for digit-lead patterns
 
 ## Patterns Tested
 
