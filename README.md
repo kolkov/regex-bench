@@ -19,40 +19,44 @@ All benchmarks run on **identical conditions**:
 
 | Pattern | Go stdlib | Go coregex | Rust regex | vs stdlib | vs Rust |
 |---------|-----------|------------|------------|-----------|---------|
-| literal_alt | 482 ms | 4.3 ms | **0.7 ms** | **112x** | 5.9x slower |
-| multi_literal | 1402 ms | 12.4 ms | **4.8 ms** | **113x** | 2.6x slower |
-| anchored | 0.05 ms | **0.02 ms** | 0.04 ms | **2.5x** | **2x faster** |
-| inner_literal | 232 ms | **0.83 ms** | 0.54 ms | **280x** | 1.5x slower |
-| suffix | 233 ms | **1.0 ms** | 1.3 ms | **224x** | **27% faster** |
-| char_class | 511 ms | **39.4 ms** | 53.4 ms | **13x** | **35% faster** |
-| email | 261 ms | **1.2 ms** | 1.4 ms | **225x** | **16% faster** |
-| uri | 258 ms | 1.8 ms | **1.2 ms** | **145x** | 1.5x slower |
-| version | 171 ms | 2.2 ms | **0.7 ms** | **79x** | 3.2x slower |
-| **ip** | 500 ms | **3.8 ms** | 12.3 ms | **132x** | **3.3x faster** |
+| inner_literal | 231 ms | **0.68 ms** | 0.51 ms | **340x** | 33% slower |
+| email | 277 ms | **1.28 ms** | 1.40 ms | **216x** | **9% faster** |
+| suffix | 234 ms | 1.99 ms | **1.30 ms** | **118x** | 53% slower |
+| uri | 267 ms | 1.85 ms | **0.91 ms** | **144x** | 2x slower |
+| ip | 507 ms | **3.88 ms** | 12.30 ms | **131x** | **3.2x faster** |
+| multi_literal | 1413 ms | 12.56 ms | **4.87 ms** | **112x** | 2.6x slower |
+| literal_alt | 480 ms | 4.33 ms | **0.75 ms** | **111x** | 5.8x slower |
+| char_class | 516 ms | **41.40 ms** | 53.76 ms | **12x** | **23% faster** |
+| version | 177 ms | 8.21 ms | **0.71 ms** | **22x** | 11.6x slower |
+| anchored | 0.03 ms | 0.21 ms | **0.05 ms** | 7x slower | 4x slower |
+
+> **Note**: v0.10.1 has regressions on `version` (3.8x) and `anchored` (10x) patterns compared to v0.10.0.
+> See [coregex issue #74](https://github.com/coregx/coregex/issues/74) for investigation.
 
 ### Key Findings
 
-**Go coregex v0.10.0 vs Go stdlib:**
-- Most patterns: **13-280x faster**
-- Best: `inner_literal` **280x**, `email` **225x**, `suffix` **224x**, `ip` **132x**
-- `multi_literal` **113x** (Aho-Corasick)
-- `literal_alt` **112x** (Teddy SIMD)
-- `char_class` **13x** (CharClassSearcher)
-- `version` **79x** (DigitPrefilter)
+**Go coregex v0.10.1 vs Go stdlib:**
+- Most patterns: **12-340x faster**
+- Best: `inner_literal` **340x**, `email` **216x**, `uri` **144x**, `ip` **131x**
+- `multi_literal` **112x** (Aho-Corasick)
+- `literal_alt` **111x** (Teddy SIMD)
+- `char_class` **12x** (CharClassSearcher)
+- `version` **22x** (ReverseInner) — regression from v0.10.0 (was 79x)
+- `anchored` **7x slower** — regression from v0.10.0 (was 2.5x faster)
 
-**Go coregex faster than Rust (5 patterns!):**
-- `char_class`: **coregex 35% faster** (39ms vs 53ms)
-- `ip`: **coregex 3.3x faster** (3.8ms vs 12.3ms)
-- `suffix`: **coregex 27% faster** (1.0ms vs 1.3ms)
-- `email`: **coregex 16% faster** (1.2ms vs 1.4ms)
-- `anchored`: **coregex 2x faster** (0.02ms vs 0.04ms)
+**Go coregex faster than Rust (3 patterns):**
+- `ip`: **coregex 3.2x faster** (3.9ms vs 12.3ms)
+- `char_class`: **coregex 23% faster** (41ms vs 54ms)
+- `email`: **coregex 9% faster** (1.3ms vs 1.4ms)
 
 **Rust faster than coregex:**
-- `literal_alt`: Rust 5.9x faster
-- `version`: Rust 3.2x faster
+- `version`: Rust 11.6x faster (regression!)
+- `literal_alt`: Rust 5.8x faster
+- `anchored`: Rust 4x faster (regression!)
 - `multi_literal`: Rust 2.6x faster
-- `inner_literal`: Rust 1.5x faster
-- `uri`: Rust 1.5x faster
+- `uri`: Rust 2x faster
+- `suffix`: Rust 53% faster
+- `inner_literal`: Rust 33% faster
 
 > **Note**: Rust regex has 10+ years of development. coregex optimizations are targeted, not universal.
 
@@ -61,16 +65,21 @@ All benchmarks run on **identical conditions**:
 | Engine | Strengths | Weaknesses |
 |--------|-----------|------------|
 | **Go stdlib** | Simple, no dependencies | No optimizations, 13-225x slower |
-| **Go coregex** | Reverse search, SIMD prefilters, Aho-Corasick, **5 patterns faster than Rust** | — |
+| **Go coregex** | Reverse search, SIMD prefilters, Aho-Corasick, **3 patterns faster than Rust** | v0.10.1 regressions on version/anchored |
 | **Rust regex** | Aho-Corasick (any count), mature DFA, overall fastest | char_class, IP, suffix, email slower |
+
+**v0.10.1 Regressions (under investigation):**
+- `version`: 2.2ms → 8.2ms (3.8x regression) — strategy changed from DigitPrefilter to ReverseInner
+- `anchored`: 0.02ms → 0.21ms (10x regression) — same UseNFA strategy, cause unknown
+- See [coregex #74](https://github.com/coregx/coregex/issues/74) for details
 
 **v0.10.0 Improvements:**
 - Fat Teddy AVX2: 33-64 pattern support (9+ GB/s throughput)
-- **5 patterns now faster than Rust**: char_class, ip, suffix, email, anchored
+- **5 patterns faster than Rust** (before v0.10.1 regressions): char_class, ip, suffix, email, anchored
 - `inner_literal`: **280x faster** (was 140x), gap vs Rust reduced from 2.3x to 1.5x
-- `suffix`: **224x faster** (was 158x), now **27% faster than Rust**
-- `char_class`: **13x faster** (was 9x), now **35% faster than Rust**
-- `email`: **225x faster** (was 145x), now **16% faster than Rust**
+- `suffix`: **224x faster** (was 158x), was **27% faster than Rust**
+- `char_class`: **13x faster** (was 9x), still **35% faster than Rust**
+- `email`: **225x faster** (was 145x), still **16% faster than Rust**
 
 **v0.9.5 Improvements:**
 - `multi_literal`: **99x faster** than stdlib (was 27x in v0.9.4!)
@@ -101,8 +110,8 @@ All benchmarks run on **identical conditions**:
 | char_class | `[\w]+` | Character class | CharClassSearcher |
 | email | `[\w.+-]+@[\w.-]+\.[\w.-]+` | Complex real-world | Memmem SIMD |
 | uri | `[\w]+://[^/\s?#]+[^\s?#]+...` | URL with query/fragment | Memmem SIMD |
-| version | `\d+\.\d+\.\d+` | Version numbers | **ReverseInner** (`.` literal) |
-| ip | `(?:(?:25[0-5]\|2[0-4][0-9]\|...)\.){3}...` | IPv4 validation | **LazyDFA** (optimized) |
+| version | `\d+\.\d+\.\d+` | Version numbers | ReverseInner (regression from DigitPrefilter) |
+| ip | `(?:(?:25[0-5]\|2[0-4][0-9]\|...)\.){3}...` | IPv4 validation | DigitPrefilter + LazyDFA |
 
 ## Running Benchmarks
 
