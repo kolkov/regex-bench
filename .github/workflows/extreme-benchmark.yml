@@ -22,7 +22,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
+          go-version: '1.26'
 
       - name: Generate NO-DIGITS input data (for 3000x speedup)
         run: go run scripts/generate-3000x-input.go
@@ -30,8 +30,8 @@ jobs:
       - name: Build Go stdlib extreme
         run: cd go-stdlib-extreme && go build -o ../bin/go-stdlib-extreme .
 
-      - name: Build Go coregex extreme
-        run: cd go-coregex-extreme && go build -o ../bin/go-coregex-extreme .
+      - name: Build Go coregex extreme (GOEXPERIMENT=simd for archsimd intrinsics)
+        run: cd go-coregex-extreme && GOEXPERIMENT=simd go build -o ../bin/go-coregex-extreme .
 
       - name: Run EXTREME benchmarks
         run: |
