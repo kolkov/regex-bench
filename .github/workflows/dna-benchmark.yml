@@ -21,7 +21,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
+          go-version: '1.26'
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
@@ -32,8 +32,8 @@ jobs:
       - name: Build Go stdlib DNA
         run: cd go-stdlib-dna && go build -o ../bin/go-stdlib-dna .
 
-      - name: Build Go coregex DNA
-        run: cd go-coregex-dna && go build -o ../bin/go-coregex-dna .
+      - name: Build Go coregex DNA (GOEXPERIMENT=simd for archsimd intrinsics)
+        run: cd go-coregex-dna && GOEXPERIMENT=simd go build -o ../bin/go-coregex-dna .
 
       - name: Build Rust DNA
         run: cd rust-dna && cargo build --release && cp target/release/dna-benchmark ../bin/rust-dna

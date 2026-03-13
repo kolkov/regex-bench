@@ -17,7 +17,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.26'
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
@@ -28,8 +28,8 @@ jobs:
       - name: Build Go stdlib
         run: cd go-stdlib && go build -o ../bin/go-stdlib .
 
-      - name: Build Go coregex
-        run: cd go-coregex && go build -o ../bin/go-coregex .
+      - name: Build Go coregex (GOEXPERIMENT=simd for archsimd intrinsics)
+        run: cd go-coregex && GOEXPERIMENT=simd go build -o ../bin/go-coregex .
 
       - name: Build Rust
         run: cd rust && cargo build --release && cp target/release/benchmark ../bin/rust-benchmark
