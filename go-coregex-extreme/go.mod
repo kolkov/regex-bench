@@ -2,7 +2,7 @@ module go-coregex-extreme
 
 go 1.25.4
 
-require github.com/coregx/coregex v0.12.17-0.20260323085658-c145c81463a6
+require github.com/coregx/coregex v0.12.18-0.20260323144954-3a540670a4c2
 
 require (
 	github.com/coregx/ahocorasick v0.2.1 // indirect
