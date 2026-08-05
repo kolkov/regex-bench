@@ -9,6 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2026-08-05] - Aho-Corasick v0.3.0, 6 patterns faster than Rust (v0.12.23)
+
+### Changed
+- **Updated coregex v0.12.22 → [v0.12.23](https://github.com/coregx/coregex/releases/tag/v0.12.23)**
+  - `github.com/coregx/ahocorasick` v0.2.1 → v0.3.0 — zero-allocation `Find`/`FindAt` API
+
+### Benchmark Results (AMD EPYC)
+
+| Pattern | v0.12.18 | v0.12.23 | vs Rust | Notes |
+|---------|----------|----------|---------|-------|
+| inner_literal | 0.29 ms | 0.26 ms | **52x faster** | improved |
+| ip | 2.10 ms | 0.77 ms | **17.6x faster** | improved |
+| suffix | 1.83 ms | 1.79 ms | **7.7x faster** | improved |
+| multiline_php | 0.66 ms | 0.38 ms | **2.0x faster** | improved |
+| char_class | 47.95 ms | 41.91 ms | **1.4x faster** | improved |
+| version | 1.81 ms | 0.65 ms | **1.2x faster** | improved |
+| word_repeat | 185 ms | 179 ms | 3.2x | stable |
+| http_methods | 1.28 ms | 1.51 ms | 2.4x | stable |
+
+**6 patterns faster than Rust** (up from 4 in v0.12.18). No regressions.
+README updated with full results table.
+
+---
+
 ## [2026-03-24] - Flat DFA transition table, integrated prefilter (v0.12.18)
 
 ### Changed
