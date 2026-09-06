@@ -2,9 +2,9 @@ module go-coregex-dna
 
 go 1.25.4
 
-require github.com/coregx/coregex v0.12.5-0.20260308171116-cc5d92220dc2
+require github.com/coregx/coregex v0.12.24
 
 require (
-	github.com/coregx/ahocorasick v0.1.0 // indirect
-	golang.org/x/sys v0.40.0 // indirect
+	github.com/coregx/ahocorasick v0.3.1 // indirect
+	golang.org/x/sys v0.47.0 // indirect
 )
